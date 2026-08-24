@@ -1,0 +1,36 @@
+---
+- name: Install SELinux management packages
+  ansible.builtin.dnf:
+    name:
+      - selinux-policy-targeted
+      - libselinux-utils
+      - policycoreutils
+      - policycoreutils-python-utils
+      - python3-libselinux
+    state: present
+
+- name: Set SELinux policy and mode
+  ansible.posix.selinux:
+    policy: "{{ selinux_policy }}"
+    state: "{{ selinux_state }}"
+  register: selinux_result
+
+- name: Ensure the SSH port is typed for SELinux (allows controller access)
+  community.general.seport:
+    ports: "{{ selinux_ssh_port }}"
+    proto: tcp
+    setype: ssh_port_t
+    state: present
+
+- name: Warn that a reboot is required to fully apply the SELinux state
+  ansible.builtin.debug:
+    msg: >-
+      SELinux was disabled and needs a reboot before it becomes
+      {{ selinux_state }}. Re-run with -e selinux_allow_reboot=true to reboot
+      automatically, or reboot the host manually.
+  when: selinux_result.reboot_required | default(false) and not selinux_allow_reboot
+
+- name: Reboot to apply the SELinux state change
+  ansible.builtin.reboot:
+    reboot_timeout: 300
+  when: selinux_result.reboot_required | default(false) and selinux_allow_reboot

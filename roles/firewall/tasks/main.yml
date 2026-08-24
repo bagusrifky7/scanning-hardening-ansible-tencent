@@ -1,0 +1,29 @@
+---
+- name: Install firewalld
+  ansible.builtin.dnf:
+    name: firewalld
+    state: present
+
+- name: Enable and start firewalld
+  ansible.builtin.service:
+    name: firewalld
+    state: started
+    enabled: true
+
+- name: Allow required services
+  ansible.posix.firewalld:
+    service: "{{ item }}"
+    zone: "{{ firewall_zone }}"
+    state: enabled
+    permanent: true
+    immediate: true
+  loop: "{{ firewall_allowed_services }}"
+
+- name: Open required ports
+  ansible.posix.firewalld:
+    port: "{{ item }}"
+    zone: "{{ firewall_zone }}"
+    state: enabled
+    permanent: true
+    immediate: true
+  loop: "{{ firewall_open_ports }}"

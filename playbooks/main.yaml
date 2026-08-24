@@ -1,0 +1,8 @@
+---
+- name: Harden and secure scanning nodes
+  hosts: hosts
+  become: true
+  roles:
+    - ssh_hardening
+    - firewall
+    - selinux

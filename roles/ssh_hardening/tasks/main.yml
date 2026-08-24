@@ -1,24 +1,10 @@
 ---
-- name: Disable SSH password authentication
-  ansible.posix.sshd_config:
-    name: PasswordAuthentication
-    value: "{{ 'yes' if ssh_password_authentication else 'no' }}"
-  notify: restart sshd
-
-- name: Disable SSH challenge-response authentication
-  ansible.posix.sshd_config:
-    name: ChallengeResponseAuthentication
-    value: "{{ 'yes' if ssh_challenge_response_authentication else 'no' }}"
-  notify: restart sshd
-
-- name: Restrict root login to key-based only
-  ansible.posix.sshd_config:
-    name: PermitRootLogin
-    value: "{{ ssh_permit_root_login }}"
-  notify: restart sshd
-
-- name: Keep public key authentication enabled
-  ansible.posix.sshd_config:
-    name: PubkeyAuthentication
-    value: "yes"
+- name: Deploy SSH hardening drop-in config
+  ansible.builtin.template:
+    src: 99-hardening.conf.j2
+    dest: /etc/ssh/sshd_config.d/99-hardening.conf
+    owner: root
+    group: root
+    mode: "0600"
+    validate: "sshd -t -f %s"
   notify: restart sshd

@@ -1,0 +1,6 @@
+{{ ansible_managed | comment }}
+
+PasswordAuthentication {{ 'yes' if ssh_password_authentication else 'no' }}
+ChallengeResponseAuthentication {{ 'yes' if ssh_challenge_response_authentication else 'no' }}
+PermitRootLogin {{ ssh_permit_root_login }}
+PubkeyAuthentication yes

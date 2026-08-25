@@ -15,22 +15,39 @@
     state: "{{ selinux_state }}"
   register: selinux_result
 
-- name: Ensure the SSH port is typed for SELinux (allows controller access)
-  community.general.seport:
-    ports: "{{ selinux_ssh_port }}"
-    proto: tcp
-    setype: ssh_port_t
-    state: present
+- name: Determine whether reboot is still needed
+  ansible.builtin.set_fact:
+    selinux_reboot_pending: "{{ (selinux_result.reboot_required | default(false)) or (selinux_state != 'disabled' and ansible_facts.selinux.status == 'disabled') }}"
 
 - name: Warn that a reboot is required to fully apply the SELinux state
   ansible.builtin.debug:
     msg: >-
       SELinux was disabled and needs a reboot before it becomes
       {{ selinux_state }}. Re-run with -e selinux_allow_reboot=true to reboot
-      automatically, or reboot the host manually.
-  when: selinux_result.reboot_required | default(false) and not selinux_allow_reboot
+      automatically, or reboot the host manually, then run this playbook.
+  when: selinux_reboot_pending and not selinux_allow_reboot
 
 - name: Reboot to apply the SELinux state change
   ansible.builtin.reboot:
     reboot_timeout: 300
-  when: selinux_result.reboot_required | default(false) and selinux_allow_reboot
+  when: selinux_reboot_pending and selinux_allow_reboot
+
+- name: Re-gather facts after reboot to check SELinux status
+  ansible.builtin.setup:
+    filter: ansible_selinux
+  when: selinux_reboot_pending and selinux_allow_reboot
+
+- name: Wait before applying SELinux port
+  ansible.builtin.pause:
+    seconds: 30
+
+- name: Ensure the SSH port is typed for SELinux (allow controller access)
+  community.general.seport:
+    ports: "{{ selinux_ssh_port }}"
+    proto: tcp
+    setype: ssh_port_t
+    state: present
+  when: ansible_facts.selinux.status == 'enabled'
+
+  
+

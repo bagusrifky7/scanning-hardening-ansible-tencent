@@ -1,5 +1,5 @@
 ---
 selinux_policy: targeted
 selinux_state: enforcing
-selinux_allow_reboot: false
+selinux_allow_reboot: true
 selinux_ssh_port: "{{ ssh_port | default(22) }}"

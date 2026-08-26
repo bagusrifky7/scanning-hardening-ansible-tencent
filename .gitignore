@@ -4,3 +4,4 @@ CLAUDE.MD
 inventory/inventory
 ansible-navigator.log
 playbooks/*-artifact-*.json
+compliance-scan-node/

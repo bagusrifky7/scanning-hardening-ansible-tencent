@@ -1,0 +1,7 @@
+---
+- name: Minimal test
+  hosts: hosts
+  gather_facts: false
+  tasks:
+    - name: ping
+      ansible.builtin.ping:

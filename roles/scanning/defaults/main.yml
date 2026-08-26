@@ -1,0 +1,4 @@
+scan_profile: xccdf_org.ssgproject.content_profile_cis_server_l1
+scan_content: /usr/share/xml/scap/ssg/content/ssg-almalinux9-ds.xml
+scan_directory: /tmp/oscap-scan-result
+scan_master_vm_directory: "{{ playbook_dir }}/../compliance-scan-node"

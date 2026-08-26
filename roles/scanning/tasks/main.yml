@@ -1,0 +1,32 @@
+- name: Install Openscap
+  ansible.builtin.dnf:
+    name: openscap-scanner
+    state: present
+
+- name: Install Scap Security Guide
+  ansible.builtin.dnf:
+    name: scap-security-guide
+    state: present
+
+- name: Ensure scan directory exists
+  ansible.builtin.file:
+    path: "{{ scan_directory }}"
+    state: directory
+    mode: "0755"
+
+- name: Scan the VM
+  ansible.builtin.command: >
+    oscap xccdf eval
+    --profile {{ scan_profile }}
+    --results {{ scan_directory }}/scan-result-{{ inventory_hostname }}.xml
+    --report {{ scan_directory }}/scan-report-{{ inventory_hostname }}.html
+    {{ scan_content }}
+  register: oscap_result
+  failed_when: oscap_result.rc not in [0, 2]
+  changed_when: false
+
+- name: Pull the report to master vm
+  ansible.builtin.fetch:
+    src: "{{ scan_directory }}/scan-report-{{ inventory_hostname }}.html"
+    dest: "{{ scan_master_vm_directory }}/"
+    flat: false

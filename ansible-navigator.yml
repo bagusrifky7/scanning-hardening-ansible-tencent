@@ -4,3 +4,5 @@ ansible-navigator:
     image: ghcr.io/ansible/community-ansible-dev-tools:latest
     pull:
       policy: missing
+
+  mode: stdout

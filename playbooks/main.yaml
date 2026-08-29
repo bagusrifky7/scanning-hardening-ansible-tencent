@@ -1,6 +1,6 @@
 ---
 - name: Harden and secure scanning nodes
-  hosts: tencent-bagus
+  hosts: ansible-bagus
   become: true
   roles:
     # - ssh_hardening

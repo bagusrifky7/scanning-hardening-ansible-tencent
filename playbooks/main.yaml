@@ -1,6 +1,6 @@
 ---
 - name: Harden and secure scanning nodes
-  hosts: ansible-bagus
+  hosts: VM-32-15-almalinux
   become: true
   roles:
     # - ssh_hardening

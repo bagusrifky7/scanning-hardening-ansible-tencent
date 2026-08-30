@@ -1,6 +1,18 @@
 ---
+# SELinux Rollback
 selinux_rollback_policy: targeted
 selinux_rollback_state: permissive
 selinux_rollback_allow_reboot: "{{ selinux_allow_reboot | default(true) }}"
 selinux_rollback_reboot_timeout: 600
 selinux_rollback_autorelabel: true
+
+# AIDE Rollback
+aide_rollback: true
+aide_rollback_config_path: "{{ aide_config_path | default('/etc/aide.conf') }}"
+aide_rollback_database_path: "{{ aide_database_path | default('/var/lib/aide/aide.db.gz') }}"
+aide_rollback_database_new_path: "{{ aide_database_new_path | default('/var/lib/aide/aide.db.new.gz') }}"
+aide_rollback_cron_file: "{{ aide_cron_file | default('aide') }}"
+aide_rollback_cron_user: "{{ aide_cron_user | default('root') }}"
+aide_rollback_block_marker: "# {mark} ANSIBLE MANAGED BLOCK - audit tools"
+aide_rollback_remove_database: false
+aide_rollback_remove_package: false

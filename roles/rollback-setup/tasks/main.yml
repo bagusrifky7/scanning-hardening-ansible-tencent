@@ -65,3 +65,79 @@
       SELinux rollback did not persist: status={{ ansible_facts.selinux.status }}
       mode={{ ansible_facts.selinux.mode | default('n/a') }}
       config_mode={{ ansible_facts.selinux.config_mode | default('n/a') }}
+
+- name: Roll the AIDE configuration back
+  when: aide_rollback | bool
+  block:
+    - name: Check whether AIDE is present
+      ansible.builtin.stat:
+        path: "{{ aide_rollback_config_path }}"
+      register: aide_rollback_config
+
+    - name: Stop the scheduled AIDE integrity check
+      ansible.builtin.cron:
+        name: Run AIDE integrity check
+        cron_file: "{{ aide_rollback_cron_file }}"
+        user: "{{ aide_rollback_cron_user }}"
+        state: absent
+
+    - name: Drop the AIDE cron mailbox setting
+      ansible.builtin.cron:
+        name: MAILTO
+        env: true
+        cron_file: "{{ aide_rollback_cron_file }}"
+        user: "{{ aide_rollback_cron_user }}"
+        state: absent
+
+    - name: Remove the AIDE cron file left behind
+      ansible.builtin.file:
+        path: "/etc/cron.d/{{ aide_rollback_cron_file }}"
+        state: absent
+
+    # The inverse of the aide role's blockinfile: same marker, state absent.
+    - name: Remove the managed audit tools block from the AIDE configuration
+      ansible.builtin.blockinfile:
+        path: "{{ aide_rollback_config_path }}"
+        marker: "{{ aide_rollback_block_marker }}"
+        state: absent
+        backup: true
+      when: aide_rollback_config.stat.exists
+
+    - name: Validate the AIDE configuration after the rollback
+      ansible.builtin.command: aide --config-check
+      changed_when: false
+      when:
+        - aide_rollback_config.stat.exists
+        - not (aide_rollback_remove_package | bool)
+
+    - name: Remove the AIDE databases
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - "{{ aide_rollback_database_path }}"
+        - "{{ aide_rollback_database_new_path }}"
+      when: aide_rollback_remove_database | bool or aide_rollback_remove_package | bool
+
+    - name: Remove the AIDE package
+      ansible.builtin.dnf:
+        name: aide
+        state: absent
+      when: aide_rollback_remove_package | bool
+
+    - name: Confirm the AIDE schedule is gone
+      ansible.builtin.stat:
+        path: "/etc/cron.d/{{ aide_rollback_cron_file }}"
+      register: aide_rollback_cron_check
+
+    - name: Assert that the AIDE rollback took effect
+      ansible.builtin.assert:
+        that:
+          - not aide_rollback_cron_check.stat.exists
+        success_msg: >-
+          AIDE is rolled back: no scheduled check, managed config block removed,
+          database {{ 'removed' if (aide_rollback_remove_database | bool or aide_rollback_remove_package | bool) else 'kept' }},
+          package {{ 'removed' if aide_rollback_remove_package | bool else 'kept' }}.
+        fail_msg: >-
+          /etc/cron.d/{{ aide_rollback_cron_file }} still exists, so AIDE is still
+          scheduled to run.

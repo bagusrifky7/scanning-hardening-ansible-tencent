@@ -1,0 +1,85 @@
+---
+- name: Install AIDE
+  ansible.builtin.dnf:
+    name: aide
+    state: present
+
+- name: Configure AIDE to verify the audit tools
+  ansible.builtin.blockinfile:
+    path: "{{ aide_config_path }}"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - audit tools"
+    block: |
+      {% for tool in aide_audit_tools %}
+      {{ tool }} {{ aide_audit_tools_rule }}
+      {% endfor %}
+    owner: root
+    group: root
+    mode: "0600"
+    backup: true
+  register: aide_audit_tools_config
+
+- name: Validate the AIDE configuration
+  ansible.builtin.command: aide --config-check
+  changed_when: false
+
+- name: Check whether the AIDE database already exists
+  ansible.builtin.stat:
+    path: "{{ aide_database_path }}"
+  register: aide_database
+
+- name: Build the AIDE database
+  ansible.builtin.command: aide --init
+  register: aide_init
+  changed_when: aide_init.rc == 0
+  timeout: "{{ aide_init_timeout }}"
+  when: >-
+    aide_reinit | bool
+    or not aide_database.stat.exists
+    or aide_audit_tools_config is changed
+
+- name: Install the new AIDE database
+  ansible.builtin.copy:
+    src: "{{ aide_database_new_path }}"
+    dest: "{{ aide_database_path }}"
+    remote_src: true
+    owner: root
+    group: root
+    mode: "0600"
+  when: aide_init is changed
+
+- name: Remove the staged AIDE database
+  ansible.builtin.file:
+    path: "{{ aide_database_new_path }}"
+    state: absent
+  when: aide_init is changed
+
+- name: Test the AIDE database
+  ansible.builtin.command: aide --check
+  register: aide_check
+  changed_when: false
+  failed_when: aide_check.rc not in [0, 1, 2, 3, 4, 5, 6, 7]
+
+- name: Report the AIDE check result
+  ansible.builtin.debug:
+    msg: "{{ aide_check.stdout_lines | default([]) | last | default('aide --check produced no output') }}"
+
+- name: Send AIDE cron output to a mailbox
+  ansible.builtin.cron:
+    name: MAILTO
+    env: true
+    value: "{{ aide_cron_mailto }}"
+    cron_file: "{{ aide_cron_file }}"
+    user: "{{ aide_cron_user }}"
+  when: aide_cron_mailto | length > 0
+
+- name: Configure periodic execution of AIDE
+  ansible.builtin.cron:
+    name: Run AIDE integrity check
+    cron_file: "{{ aide_cron_file }}"
+    user: "{{ aide_cron_user }}"
+    minute: "{{ aide_cron_minute }}"
+    hour: "{{ aide_cron_hour }}"
+    day: "{{ aide_cron_day }}"
+    month: "{{ aide_cron_month }}"
+    weekday: "{{ aide_cron_weekday }}"
+    job: "{{ aide_cron_job }}"

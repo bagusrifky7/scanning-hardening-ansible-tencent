@@ -1,0 +1,28 @@
+---
+aide_config_path: /etc/aide.conf
+aide_database_path: /var/lib/aide/aide.db.gz
+aide_database_new_path: /var/lib/aide/aide.db.new.gz
+
+aide_init_timeout: 1800
+aide_reinit: false
+
+
+aide_audit_tools_rule: p+i+n+u+g+s+b+acl+xattrs+sha512
+aide_audit_tools:
+  - /usr/sbin/auditctl
+  - /usr/sbin/auditd
+  - /usr/sbin/ausearch
+  - /usr/sbin/aureport
+  - /usr/sbin/autrace
+  - /usr/sbin/augenrules
+  - /usr/sbin/rsyslogd
+
+aide_cron_file: aide
+aide_cron_user: root
+aide_cron_minute: "5"
+aide_cron_hour: "4"
+aide_cron_day: "*"
+aide_cron_month: "*"
+aide_cron_weekday: "*"
+aide_cron_job: /usr/sbin/aide --check
+aide_cron_mailto: root

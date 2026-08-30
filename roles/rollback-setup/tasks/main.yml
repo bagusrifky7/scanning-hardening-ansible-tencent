@@ -1,0 +1,67 @@
+---
+- name: Gather the current SELinux status
+  ansible.builtin.setup:
+    filter: ansible_selinux
+
+- name: Report the SELinux status before the rollback
+  ansible.builtin.debug:
+    msg: >-
+      SELinux is currently status={{ ansible_facts.selinux.status }}
+      mode={{ ansible_facts.selinux.mode | default('n/a') }}
+      config_mode={{ ansible_facts.selinux.config_mode | default('n/a') }}
+
+- name: Schedule a filesystem relabel before bringing SELinux back up
+  ansible.builtin.file:
+    path: /.autorelabel
+    state: touch
+    owner: root
+    group: root
+    mode: "0644"
+  when:
+    - ansible_facts.selinux.status == 'disabled'
+    - selinux_rollback_autorelabel | bool
+
+- name: Roll the SELinux policy and mode back
+  ansible.posix.selinux:
+    policy: "{{ selinux_rollback_policy }}"
+    state: "{{ selinux_rollback_state }}"
+  register: selinux_rollback_result
+
+- name: Determine whether a reboot is still needed
+  ansible.builtin.set_fact:
+    selinux_reboot_pending: >-
+      {{ (selinux_rollback_result.reboot_required | default(false))
+         or (ansible_facts.selinux.status == 'disabled') }}
+
+- name: Warn that a reboot is required to fully apply the SELinux state
+  ansible.builtin.debug:
+    msg: >-
+      SELinux needs a reboot before it becomes {{ selinux_rollback_state }}.
+      Re-run with -e selinux_rollback_allow_reboot=true to reboot automatically,
+      or reboot the host manually, then run this playbook.
+  when:
+    - selinux_reboot_pending | bool
+    - not (selinux_rollback_allow_reboot | bool)
+
+- name: Reboot to apply the SELinux state change
+  ansible.builtin.reboot:
+    reboot_timeout: "{{ selinux_rollback_reboot_timeout }}"
+  when:
+    - selinux_rollback_result is changed or selinux_reboot_pending | bool
+    - selinux_rollback_allow_reboot | bool
+
+- name: Re-gather facts to confirm the SELinux status
+  ansible.builtin.setup:
+    filter: ansible_selinux
+
+- name: Assert that the rollback took effect and persisted
+  ansible.builtin.assert:
+    that:
+      - ansible_facts.selinux.config_mode == selinux_rollback_state
+      - ansible_facts.selinux.status != 'enabled' or ansible_facts.selinux.mode == selinux_rollback_state
+    success_msg: >-
+      SELinux is {{ selinux_rollback_state }} at runtime and in /etc/selinux/config.
+    fail_msg: >-
+      SELinux rollback did not persist: status={{ ansible_facts.selinux.status }}
+      mode={{ ansible_facts.selinux.mode | default('n/a') }}
+      config_mode={{ ansible_facts.selinux.config_mode | default('n/a') }}

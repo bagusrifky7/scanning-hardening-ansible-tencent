@@ -1,0 +1,13 @@
+---
+# rollback-setup role
+# permissive is the persisted equivalent of "setenforce 0"
+selinux_rollback_policy: targeted
+selinux_rollback_state: permissive
+
+# namespaced so group_vars' selinux_state (meant for the selinux role) cannot
+# override the rollback, while still honouring selinux_allow_reboot
+selinux_rollback_allow_reboot: "{{ selinux_allow_reboot | default(true) }}"
+selinux_rollback_reboot_timeout: 600
+
+# only used when SELinux is currently disabled and needs a relabel on the way back
+selinux_rollback_autorelabel: true

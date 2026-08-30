@@ -1,0 +1,6 @@
+---
+- name: Rollback the configuration
+  hosts: VM-32-14-almalinux
+  become: true
+  roles:
+    - rollback-setup

@@ -1,0 +1,5 @@
+- name: Install and Validate AIDE works
+  hosts: VM-32-14-almalinux
+  become: true
+  roles:
+    - aide

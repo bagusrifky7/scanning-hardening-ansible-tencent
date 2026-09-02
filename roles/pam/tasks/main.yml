@@ -1,0 +1,253 @@
+---
+- name: Install the PAM hardening packages
+  ansible.builtin.dnf:
+    name: "{{ pam_packages }}"
+    state: present
+
+- name: Read the active authselect profile
+  ansible.builtin.command: authselect current --raw
+  register: pam_authselect_current
+  changed_when: false
+  failed_when: false
+
+- name: Fail when PAM is not managed by authselect
+  ansible.builtin.fail:
+    msg: >-
+      authselect is not managing /etc/pam.d on this host
+      ({{ pam_authselect_current.stderr | default('authselect current failed') | trim }}).
+      Set pam_authselect_force_default_profile=true to select the
+      {{ pam_authselect_base_profile }} profile, or fix the PAM configuration by hand.
+  when:
+    - pam_authselect_current.rc != 0
+    - not (pam_authselect_force_default_profile | bool)
+
+- name: Select a baseline authselect profile when none is configured
+  ansible.builtin.command: "authselect select {{ pam_authselect_base_profile }} --force"
+  when: pam_authselect_current.rc != 0
+  changed_when: true
+
+- name: Re-read the active authselect profile
+  ansible.builtin.command: authselect current --raw
+  register: pam_authselect_active
+  changed_when: false
+  when: pam_authselect_current.rc != 0
+
+- name: Record the active authselect profile and features
+  ansible.builtin.set_fact:
+    pam_authselect_profile: >-
+      {{ (pam_authselect_active if pam_authselect_current.rc != 0 else pam_authselect_current).stdout.split() | first }}
+    pam_authselect_enabled_features: >-
+      {{ (pam_authselect_active if pam_authselect_current.rc != 0 else pam_authselect_current).stdout.split()[1:] }}
+
+- name: Work out the custom authselect profile to harden
+  ansible.builtin.set_fact:
+    pam_authselect_target: >-
+      {{ pam_authselect_profile if pam_authselect_profile.startswith('custom/')
+         else 'custom/' ~ pam_authselect_profile_name }}
+
+- name: Check whether the custom authselect profile already exists
+  ansible.builtin.stat:
+    path: "/etc/authselect/{{ pam_authselect_target }}"
+  register: pam_authselect_custom_dir
+
+- name: Create the custom authselect profile
+  ansible.builtin.command: >-
+    authselect create-profile {{ pam_authselect_target | regex_replace('^custom/', '') }}
+    -b {{ pam_authselect_profile }} --symlink-meta
+  when: not pam_authselect_custom_dir.stat.exists
+  changed_when: true
+
+- name: Ensure Active Authselect Profile Includes PAM Modules
+  ansible.builtin.command: >-
+    authselect select {{ pam_authselect_target }}
+    {{ (pam_authselect_enabled_features + pam_authselect_features) | unique | join(' ') }}
+    --force
+  when: >-
+    pam_authselect_profile != pam_authselect_target
+    or pam_authselect_features | difference(pam_authselect_enabled_features) | length > 0
+  changed_when: true
+
+- name: Ensure PAM Enforces Password Requirements - Minimum Length
+  ansible.builtin.lineinfile:
+    path: "{{ pam_pwquality_conf }}"
+    regexp: '^\s*#?\s*minlen\s*='
+    line: "minlen = {{ pam_pwquality_minlen }}"
+    create: true
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Ensure PAM Enforces Password Requirements - Minimum Different Categories
+  ansible.builtin.lineinfile:
+    path: "{{ pam_pwquality_conf }}"
+    regexp: '^\s*#?\s*minclass\s*='
+    line: "minclass = {{ pam_pwquality_minclass }}"
+    create: true
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Ensure PAM Enforces Password Requirements - Minimum Different Characters
+  ansible.builtin.lineinfile:
+    path: "{{ pam_pwquality_conf }}"
+    regexp: '^\s*#?\s*difok\s*='
+    line: "difok = {{ pam_pwquality_difok }}"
+    create: true
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Ensure PAM Enforces Password Requirements - Prevent Dictionary Words
+  ansible.builtin.lineinfile:
+    path: "{{ pam_pwquality_conf }}"
+    regexp: '^\s*#?\s*dictcheck\s*='
+    line: "dictcheck = {{ pam_pwquality_dictcheck }}"
+    create: true
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Ensure PAM Enforces Password Requirements - Enforce for root User
+  ansible.builtin.lineinfile:
+    path: "{{ pam_pwquality_conf }}"
+    regexp: '^\s*#?\s*enforce_for_root\b'
+    line: enforce_for_root
+    state: "{{ 'present' if pam_pwquality_enforce_for_root | bool else 'absent' }}"
+    create: true
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Set Password Maximum Consecutive Repeating Characters
+  ansible.builtin.lineinfile:
+    path: "{{ pam_pwquality_conf }}"
+    regexp: '^\s*#?\s*maxrepeat\s*='
+    line: "maxrepeat = {{ pam_pwquality_maxrepeat }}"
+    create: true
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Limit the maximum number of sequential characters in passwords
+  ansible.builtin.lineinfile:
+    path: "{{ pam_pwquality_conf }}"
+    regexp: '^\s*#?\s*maxsequence\s*='
+    line: "maxsequence = {{ pam_pwquality_maxsequence }}"
+    create: true
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: "Limit Password Reuse: password-auth"
+  ansible.builtin.replace:
+    path: "/etc/authselect/{{ pam_authselect_target }}/password-auth"
+    regexp: '(pam_pwhistory\.so)(?!.*\bremember=)'
+    replace: '\1 remember={{ pam_pwhistory_remember }}'
+  notify: regenerate pam.d from the custom authselect profile
+
+- name: "Limit Password Reuse: system-auth"
+  ansible.builtin.replace:
+    path: "/etc/authselect/{{ pam_authselect_target }}/system-auth"
+    regexp: '(pam_pwhistory\.so)(?!.*\bremember=)'
+    replace: '\1 remember={{ pam_pwhistory_remember }}'
+  notify: regenerate pam.d from the custom authselect profile
+
+- name: Ensure Password History Is Enforced for the Root User
+  ansible.builtin.replace:
+    path: "/etc/authselect/{{ pam_authselect_target }}/{{ item }}"
+    regexp: '(pam_pwhistory\.so)(?!.*\benforce_for_root\b)'
+    replace: '\1 enforce_for_root'
+  loop:
+    - password-auth
+    - system-auth
+  when: pam_pwhistory_enforce_for_root | bool
+  notify: regenerate pam.d from the custom authselect profile
+
+- name: Align the password history depth in pwhistory.conf
+  ansible.builtin.lineinfile:
+    path: "{{ pam_pwhistory_conf }}"
+    regexp: '^\s*#?\s*remember\s*='
+    line: "remember = {{ pam_pwhistory_remember }}"
+    create: true
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Align the root password history enforcement in pwhistory.conf
+  ansible.builtin.lineinfile:
+    path: "{{ pam_pwhistory_conf }}"
+    regexp: '^\s*#?\s*enforce_for_root\b'
+    line: enforce_for_root
+    state: "{{ 'present' if pam_pwhistory_enforce_for_root | bool else 'absent' }}"
+    create: true
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Lock Accounts After Failed Password Attempts
+  ansible.builtin.lineinfile:
+    path: "{{ pam_faillock_conf }}"
+    regexp: '^\s*#?\s*deny\s*='
+    line: "deny = {{ pam_faillock_deny }}"
+    create: true
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Set Lockout Time for Failed Password Attempts
+  ansible.builtin.lineinfile:
+    path: "{{ pam_faillock_conf }}"
+    regexp: '^\s*#?\s*unlock_time\s*='
+    line: "unlock_time = {{ pam_faillock_unlock_time }}"
+    create: true
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Set the failed attempt interval and the faillock tally directory
+  ansible.builtin.lineinfile:
+    path: "{{ pam_faillock_conf }}"
+    regexp: '^\s*#?\s*{{ item.key }}\s*='
+    line: "{{ item.key }} = {{ item.value }}"
+    create: true
+    owner: root
+    group: root
+    mode: "0644"
+  loop:
+    - {key: fail_interval, value: "{{ pam_faillock_fail_interval }}"}
+    - {key: dir, value: "{{ pam_faillock_dir }}"}
+  loop_control:
+    label: "{{ item.key }}"
+
+- name: Apply the account lockout to the root user
+  ansible.builtin.lineinfile:
+    path: "{{ pam_faillock_conf }}"
+    regexp: '^\s*#?\s*even_deny_root\b'
+    line: even_deny_root
+    state: "{{ 'present' if pam_faillock_even_deny_root | bool else 'absent' }}"
+    create: true
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Regenerate /etc/pam.d before verifying the PAM stack
+  ansible.builtin.meta: flush_handlers
+
+- name: Configure pam_faillock in password-auth
+  ansible.builtin.command: grep -cE 'pam_faillock\.so +(preauth|authfail)' /etc/pam.d/password-auth
+  register: pam_faillock_password_auth
+  changed_when: false
+  failed_when: (pam_faillock_password_auth.stdout | int) < 2
+
+- name: Configure pam_faillock in system-auth
+  ansible.builtin.command: grep -cE 'pam_faillock\.so +(preauth|authfail)' /etc/pam.d/system-auth
+  register: pam_faillock_system_auth
+  changed_when: false
+  failed_when: (pam_faillock_system_auth.stdout | int) < 2
+
+- name: Verify the PAM stack still includes the hardened modules
+  ansible.builtin.command: "grep -E 'pam_(faillock|pwquality|pwhistory)\\.so' /etc/pam.d/{{ item }}"
+  loop:
+    - system-auth
+    - password-auth
+  changed_when: false

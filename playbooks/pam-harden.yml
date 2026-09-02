@@ -1,0 +1,6 @@
+---
+- name: Harden PAM password and account lockout policy
+  hosts: VM-32-14-almalinux
+  become: true
+  roles:
+    - pam

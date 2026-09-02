@@ -1,0 +1,32 @@
+---
+pam_packages:
+  - authselect
+  - libpwquality
+  - pam
+
+pam_authselect_profile_name: hardening
+pam_authselect_base_profile: sssd
+pam_authselect_force_default_profile: true
+pam_authselect_features:
+  - with-faillock
+  - with-pwhistory
+
+pam_pwquality_conf: /etc/security/pwquality.conf
+pam_pwquality_minlen: 15
+pam_pwquality_minclass: 4
+pam_pwquality_difok: 8
+pam_pwquality_dictcheck: 1
+pam_pwquality_maxrepeat: 3
+pam_pwquality_maxsequence: 3
+pam_pwquality_enforce_for_root: true
+
+pam_pwhistory_conf: /etc/security/pwhistory.conf
+pam_pwhistory_remember: 5
+pam_pwhistory_enforce_for_root: true
+
+pam_faillock_conf: /etc/security/faillock.conf
+pam_faillock_deny: 3
+pam_faillock_unlock_time: 900
+pam_faillock_fail_interval: 900
+pam_faillock_dir: /var/run/faillock
+pam_faillock_even_deny_root: true

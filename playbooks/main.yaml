@@ -1,9 +1,10 @@
 ---
 - name: Harden and secure scanning nodes
-  hosts: VM-32-14-almalinux
+  hosts: VM-16-12-almalinux
   become: true
   roles:
-    # - ssh_hardening
+    - aide
     - firewall
-    - scanning
+    - pam
     - selinux
+    - scanning

@@ -16,3 +16,46 @@ aide_rollback_cron_user: "{{ aide_cron_user | default('root') }}"
 aide_rollback_block_marker: "# {mark} ANSIBLE MANAGED BLOCK - audit tools"
 aide_rollback_remove_database: false
 aide_rollback_remove_package: false
+
+# Firewall Rollback
+firewall_rollback: true
+firewall_rollback_zone: "{{ firewall_zone | default('public') }}"
+firewall_rollback_keep_services:
+  - ssh
+firewall_rollback_services: >-
+  {{ (firewall_allowed_services | default(['ssh'])) | difference(firewall_rollback_keep_services) }}
+firewall_rollback_ports: "{{ firewall_open_ports | default(['80/tcp', '443/tcp']) }}"
+firewall_rollback_disable_service: false
+firewall_rollback_remove_package: false
+
+# PAM Rollback
+pam_rollback: true
+pam_rollback_profile: "{{ pam_authselect_base_profile | default('sssd') }}"
+pam_rollback_features: []
+pam_rollback_custom_profile: "custom/{{ pam_authselect_profile_name | default('hardening') }}"
+pam_rollback_remove_custom_profile: true
+pam_rollback_reset_faillock: true
+pam_rollback_pwquality_conf: "{{ pam_pwquality_conf | default('/etc/security/pwquality.conf') }}"
+pam_rollback_pwhistory_conf: "{{ pam_pwhistory_conf | default('/etc/security/pwhistory.conf') }}"
+pam_rollback_faillock_conf: "{{ pam_faillock_conf | default('/etc/security/faillock.conf') }}"
+pam_rollback_settings:
+  - path: "{{ pam_rollback_pwquality_conf }}"
+    options:
+      - minlen
+      - minclass
+      - difok
+      - dictcheck
+      - maxrepeat
+      - maxsequence
+      - enforce_for_root
+  - path: "{{ pam_rollback_pwhistory_conf }}"
+    options:
+      - remember
+      - enforce_for_root
+  - path: "{{ pam_rollback_faillock_conf }}"
+    options:
+      - deny
+      - unlock_time
+      - fail_interval
+      - dir
+      - even_deny_root

@@ -141,3 +141,204 @@
         fail_msg: >-
           /etc/cron.d/{{ aide_rollback_cron_file }} still exists, so AIDE is still
           scheduled to run.
+
+- name: Roll the firewall configuration back
+  when: firewall_rollback | bool
+  block:
+    - name: Check whether firewalld is installed
+      ansible.builtin.stat:
+        path: /usr/sbin/firewalld
+      register: firewall_rollback_binary
+
+    - name: Gather the service facts
+      ansible.builtin.service_facts:
+      when: firewall_rollback_binary.stat.exists
+
+    - name: Work out whether firewalld is running
+      ansible.builtin.set_fact:
+        firewall_rollback_running: >-
+          {{ firewall_rollback_binary.stat.exists
+             and (ansible_facts.services['firewalld.service'].state | default('stopped')) == 'running' }}
+
+    - name: Report the services kept to avoid locking the host out
+      ansible.builtin.debug:
+        msg: >-
+          Keeping firewalld services {{ firewall_rollback_keep_services | join(', ') }}
+          in zone {{ firewall_rollback_zone }}; removing
+          services={{ firewall_rollback_services | join(', ') | default('none', true) }}
+          ports={{ firewall_rollback_ports | join(', ') | default('none', true) }}
+
+    - name: Withdraw the services the firewall role allowed
+      ansible.posix.firewalld:
+        service: "{{ item }}"
+        zone: "{{ firewall_rollback_zone }}"
+        state: disabled
+        permanent: true
+        immediate: "{{ firewall_rollback_running | bool }}"
+      loop: "{{ firewall_rollback_services }}"
+      when:
+        - firewall_rollback_binary.stat.exists
+        - not (firewall_rollback_remove_package | bool)
+
+    - name: Close the ports the firewall role opened
+      ansible.posix.firewalld:
+        port: "{{ item }}"
+        zone: "{{ firewall_rollback_zone }}"
+        state: disabled
+        permanent: true
+        immediate: "{{ firewall_rollback_running | bool }}"
+      loop: "{{ firewall_rollback_ports }}"
+      when:
+        - firewall_rollback_binary.stat.exists
+        - not (firewall_rollback_remove_package | bool)
+
+    - name: Stop and disable firewalld
+      ansible.builtin.service:
+        name: firewalld
+        state: stopped
+        enabled: false
+      when:
+        - firewall_rollback_binary.stat.exists
+        - firewall_rollback_disable_service | bool or firewall_rollback_remove_package | bool
+
+    - name: Remove the firewalld package
+      ansible.builtin.dnf:
+        name: firewalld
+        state: absent
+      when: firewall_rollback_remove_package | bool
+
+    - name: Read the zone back after the rollback
+      ansible.builtin.command: "firewall-cmd --zone={{ firewall_rollback_zone }} --list-all"
+      register: firewall_rollback_zone_check
+      changed_when: false
+      when:
+        - firewall_rollback_running | bool
+        - not (firewall_rollback_remove_package | bool)
+        - not (firewall_rollback_disable_service | bool)
+
+    - name: Assert that the firewall rollback took effect
+      ansible.builtin.assert:
+        that:
+          - firewall_rollback_zone_check.stdout is not search('\s' ~ item ~ '(\s|$)')
+        success_msg: "{{ item }} is no longer allowed in zone {{ firewall_rollback_zone }}."
+        fail_msg: >-
+          {{ item }} is still present in zone {{ firewall_rollback_zone }}:
+          {{ firewall_rollback_zone_check.stdout }}
+      loop: "{{ firewall_rollback_services + firewall_rollback_ports }}"
+      when: firewall_rollback_zone_check is not skipped
+
+- name: Roll the PAM hardening back
+  when: pam_rollback | bool
+  block:
+    - name: Check whether authselect is installed
+      ansible.builtin.stat:
+        path: /usr/bin/authselect
+      register: pam_rollback_authselect
+
+    - name: Read the active authselect profile
+      ansible.builtin.command: authselect current --raw
+      register: pam_rollback_current
+      changed_when: false
+      failed_when: false
+      when: pam_rollback_authselect.stat.exists
+
+    - name: Work out the authselect profile to restore
+      ansible.builtin.set_fact:
+        pam_rollback_desired: >-
+          {{ ([pam_rollback_profile] + pam_rollback_features) | join(' ') }}
+
+    - name: Restore the stock authselect profile
+      ansible.builtin.command: "authselect select {{ pam_rollback_desired }} --force"
+      when:
+        - pam_rollback_authselect.stat.exists
+        - (pam_rollback_current.stdout | default('') | trim) != pam_rollback_desired
+      changed_when: true
+
+    - name: Remove the custom hardening authselect profile
+      ansible.builtin.file:
+        path: "/etc/authselect/{{ pam_rollback_custom_profile }}"
+        state: absent
+      when:
+        - pam_rollback_authselect.stat.exists
+        - pam_rollback_remove_custom_profile | bool
+        - pam_rollback_custom_profile != pam_rollback_profile
+
+    - name: Check which PAM settings files are present
+      ansible.builtin.stat:
+        path: "{{ item.path }}"
+      register: pam_rollback_conf_stat
+      loop: "{{ pam_rollback_settings }}"
+      loop_control:
+        label: "{{ item.path }}"
+
+    - name: Collect the PAM settings files to clean up
+      ansible.builtin.set_fact:
+        pam_rollback_existing_confs: >-
+          {{ pam_rollback_conf_stat.results | selectattr('stat.exists') | map(attribute='item.path') | list }}
+
+    - name: Remove the hardened PAM settings
+      ansible.builtin.lineinfile:
+        path: "{{ item.0.path }}"
+        regexp: '^\s*{{ item.1 }}\s*(=|$)'
+        state: absent
+        backup: true
+      loop: "{{ pam_rollback_settings | subelements('options') }}"
+      loop_control:
+        label: "{{ item.0.path }}: {{ item.1 }}"
+      when: item.0.path in pam_rollback_existing_confs
+
+    - name: Check whether the faillock tool is installed
+      ansible.builtin.stat:
+        path: /usr/sbin/faillock
+      register: pam_rollback_faillock_bin
+
+    - name: Clear the recorded authentication failures
+      ansible.builtin.command: faillock --reset
+      when:
+        - pam_rollback_reset_faillock | bool
+        - pam_rollback_faillock_bin.stat.exists
+      changed_when: true
+
+    - name: Re-read the active authselect profile
+      ansible.builtin.command: authselect current --raw
+      register: pam_rollback_current_check
+      changed_when: false
+      failed_when: false
+      when: pam_rollback_authselect.stat.exists
+
+    - name: Re-read the PAM settings files after the rollback
+      ansible.builtin.slurp:
+        src: "{{ item.path }}"
+      register: pam_rollback_conf_check
+      loop: "{{ pam_rollback_settings | selectattr('path', 'in', pam_rollback_existing_confs) | list }}"
+      loop_control:
+        label: "{{ item.path }}"
+
+    - name: Assert that the authselect rollback took effect
+      ansible.builtin.assert:
+        that:
+          - (pam_rollback_current_check.stdout | default('') | trim) == pam_rollback_desired
+        success_msg: >-
+          authselect is back on {{ pam_rollback_desired }} and /etc/pam.d has been regenerated.
+        fail_msg: >-
+          authselect still reports
+          "{{ pam_rollback_current_check.stdout | default('no profile') | trim }}"
+          instead of "{{ pam_rollback_desired }}".
+      when: pam_rollback_authselect.stat.exists
+
+    - name: Assert that the hardened PAM settings are gone
+      ansible.builtin.assert:
+        that:
+          - >-
+            (item.content | b64decode)
+            | regex_findall('(?m)^[ \t]*(?:' ~ (item.item.options | join('|')) ~ ')[ \t]*(?:=|$)')
+            | length == 0
+        success_msg: "{{ item.item.path }} no longer carries the hardened settings."
+        fail_msg: >-
+          {{ item.item.path }} still sets
+          {{ (item.content | b64decode)
+             | regex_findall('(?m)^[ \t]*(?:' ~ (item.item.options | join('|')) ~ ')[ \t]*(?:=|$)')
+             | join(', ') }}
+      loop: "{{ pam_rollback_conf_check.results }}"
+      loop_control:
+        label: "{{ item.item.path }}"

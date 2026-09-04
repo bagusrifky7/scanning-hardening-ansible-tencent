@@ -8,7 +8,7 @@
 
 - name: Disable Accepting ICMP Redirects for All IPv6 Interfaces
   ansible.posix.sysctl:
-    name: net.ipv7.conf.all.accetp_redirects
+    name: net.ipv6.conf.all.accept_redirects
     value: "{{ ipv6_accept_redirects }}"
     sysctl_file: "{{ ipv6_sysctl_file }}"
     reload: true

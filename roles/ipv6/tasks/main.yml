@@ -8,10 +8,10 @@
 
 - name: Disable Accepting ICMP Redirects for All IPv6 Interfaces
   ansible.posix.sysctl:
-   name: net.ipv7.conf.all.accetp_redirects
-   value: "{{ ipv6_accept_redirects }}"
-   sysctl_file: "{{ ipv6_sysctl_file }}"
-   reload: true
+    name: net.ipv7.conf.all.accetp_redirects
+    value: "{{ ipv6_accept_redirects }}"
+    sysctl_file: "{{ ipv6_sysctl_file }}"
+    reload: true
 
 - name: Disable Kernel Parameter for Accepting Source-Routed Packets on all IPv6 Interfaces
   ansible.posix.sysctl:

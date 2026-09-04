@@ -1,0 +1,89 @@
+---
+- name: Verify the host is running a supported distribution
+  ansible.builtin.assert:
+    that:
+      - ansible_facts.distribution in precheck_supported_distributions
+      - ansible_facts.distribution_major_version in precheck_supported_major_versions
+    fail_msg: >-
+      Unsupported OS: {{ ansible_facts.distribution }}
+      {{ ansible_facts.distribution_major_version }}. Supported:
+      {{ precheck_supported_distributions | join(', ') }}
+      (major versions {{ precheck_supported_major_versions | join(', ') }}).
+    success_msg: "Supported OS detected: {{ ansible_facts.distribution }} {{ ansible_facts.distribution_version }}"
+
+- name: Verify privilege escalation to root is available
+  ansible.builtin.command: whoami
+  register: precheck_whoami
+  changed_when: false
+  become: true
+
+- name: Assert the effective user is root
+  ansible.builtin.assert:
+    that:
+      - precheck_whoami.stdout == 'root'
+    fail_msg: "Privilege escalation did not result in root access (got '{{ precheck_whoami.stdout }}')."
+    success_msg: "Privilege escalation to root confirmed."
+
+- name: Check required commands are present
+  ansible.builtin.command: "which {{ item }}"
+  register: precheck_required_commands_check
+  changed_when: false
+  failed_when: false
+  loop: "{{ precheck_required_commands }}"
+  loop_control:
+    label: "{{ item }}"
+
+- name: Assert required commands are available
+  ansible.builtin.assert:
+    that:
+      - item.rc == 0
+    fail_msg: "Required command '{{ item.item }}' was not found on the host."
+    success_msg: "Command '{{ item.item }}' found."
+  loop: "{{ precheck_required_commands_check.results }}"
+  loop_control:
+    label: "{{ item.item }}"
+
+- name: Determine the root filesystem mount facts
+  ansible.builtin.set_fact:
+    precheck_root_mount: "{{ ansible_facts.mounts | selectattr('mount', 'equalto', '/') | first }}"
+
+- name: Assert sufficient free disk space is available on /
+  ansible.builtin.assert:
+    that:
+      - (precheck_root_mount.size_available / 1024 / 1024) | int >= precheck_min_free_disk_mb
+    fail_msg: >-
+      Insufficient free disk space on /:
+      {{ (precheck_root_mount.size_available / 1024 / 1024) | round(0) }}MB available,
+      {{ precheck_min_free_disk_mb }}MB required.
+    success_msg: "Sufficient free disk space available on /."
+
+- name: Assert sufficient memory is available
+  ansible.builtin.assert:
+    that:
+      - ansible_facts.memtotal_mb >= precheck_min_memory_mb
+    fail_msg: >-
+      Insufficient memory: {{ ansible_facts.memtotal_mb }}MB total,
+      {{ precheck_min_memory_mb }}MB required.
+    success_msg: "Sufficient memory available."
+
+- name: Verify network connectivity for package repositories
+  ansible.builtin.uri:
+    url: "{{ precheck_connectivity_url }}"
+    status_code: 200
+    timeout: 10
+  register: precheck_connectivity
+  failed_when: false
+
+- name: Assert repository connectivity is reachable
+  ansible.builtin.assert:
+    that:
+      - precheck_connectivity.status | default(0) == 200
+    fail_msg: "Could not reach {{ precheck_connectivity_url }} — check network/DNS/proxy settings before continuing."
+    success_msg: "Repository connectivity confirmed."
+
+- name: Report precheck summary
+  ansible.builtin.debug:
+    msg: >-
+      Precheck passed: {{ ansible_facts.distribution }} {{ ansible_facts.distribution_version }},
+      {{ ansible_facts.memtotal_mb }}MB RAM,
+      {{ (precheck_root_mount.size_available / 1024 / 1024) | round(0) }}MB free on /.

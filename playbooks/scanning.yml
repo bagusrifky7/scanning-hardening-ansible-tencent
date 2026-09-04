@@ -1,5 +1,5 @@
 - name: Scanning VM
-  hosts: VM-32-14-almalinux
+  hosts: VM-32-4-almalinux
   become: true
   roles:
     - scanning

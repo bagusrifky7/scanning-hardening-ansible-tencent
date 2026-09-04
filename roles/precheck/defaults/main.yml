@@ -1,0 +1,18 @@
+---
+precheck_supported_distributions:
+  - AlmaLinux
+  - Rocky
+  - RedHat
+  - CentOS
+precheck_supported_major_versions:
+  - "8"
+  - "9"
+
+precheck_min_free_disk_mb: 2048
+precheck_min_memory_mb: 1024
+
+precheck_required_commands:
+  - dnf
+  - systemctl
+
+precheck_connectivity_url: https://mirrors.almalinux.org

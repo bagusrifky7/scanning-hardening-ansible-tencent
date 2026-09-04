@@ -1,6 +1,6 @@
 ---
 - name: Precheck before scanning and hardening
-  hosts: VM-32-4-Almalinux
+  hosts: VM-32-4-almalinux
   become: true
   roles:
   - precheck

@@ -246,3 +246,87 @@
       - partition
       - level1
       - scan
+
+  - name: SCAN | 1.1.2.2.1 | Ensure /dev/shm is a separate partition
+    block:
+    - name: SCAN | 1.1.2.2.1 | Ensure /dev/shm is a Separate Partition
+      shell: findmnt -kn /dev/shm
+      register: rule_1_1_2_2_1
+      changed_when: false
+      failed_when: false
+
+    - set_fact:
+        rule_1_1_2_2_1_result: true
+      when: rule_1_1_2_2_1.rc == 0
+    - set_fact:
+        all_results: "{{ all_results|combine({'1.1.2.2.1':rule_1_1_2_2_1_result|default(false)}) }}"
+    when: rhel9cis_rule_1_1_2_2_1
+    ignore_errors: true
+    tags:
+      - rule_1.1.2.2.1
+      - partition
+      - level1
+      - scan
+
+  - name: SCAN | 1.1.2.2.2 | Ensure nodev option set on /dev/shm partition
+    block:
+    - name: SCAN | 1.1.2.2.2 | Ensure nodev option set on /dev/shm partition
+      shell: findmnt -kn /dev/shm | grep -v nodev
+      register: rule_1_1_2_2_2
+      changed_when: false
+      failed_when: false
+
+    - set_fact:
+        rule_1_1_2_2_2_result: true
+      when: rule_1_1_2_2_2.rc != 0
+    - set_fact:
+        all_results: "{{ all_results|combine({'1.1.2.2.2':rule_1_1_2_2_2_result|default(false)}) }}"
+    when: rhel9cis_rule_1_1_2_2_2
+    ignore_errors: true
+    tags:
+      - rule_1.1.2.2.2
+      - partition
+      - level1
+      - scan
+
+  - name: SCAN | 1.1.2.2.3 | Ensure nosuid option set on /dev/shm partition
+    block:
+    - name: SCAN | 1.1.2.2.3 | Ensure nosuid option set on /dev/shm partition
+      shell: findmnt -kn /dev/shm | grep -v nosuid
+      register: rule_1_1_2_2_3
+      changed_when: false
+      failed_when: false
+
+    - set_fact:
+        rule_1_1_2_2_3_result: true
+      when: rule_1_1_2_2_3.rc != 0
+    - set_fact:
+        all_results: "{{ all_results|combine({'1.1.2.2.3':rule_1_1_2_2_3_result|default(false)}) }}"
+    when: rhel9cis_rule_1_1_2_2_3
+    ignore_errors: true
+    tags:
+      - rule_1.1.2.2.3
+      - partition
+      - level1
+      - scan
+
+  - name: SCAN | 1.1.2.2.4 | Ensure noexec option set on /dev/shm partition
+    block:
+    - name: SCAN | 1.1.2.2.4 | Ensure noexec option set on /dev/shm partition
+      shell: findmnt -kn /dev/shm | grep -v noexec
+      register: rule_1_1_2_2_4
+      changed_when: false
+      failed_when: false
+
+    - set_fact:
+        rule_1_1_2_2_4_result: true
+      when: rule_1_1_2_2_4.rc != 0
+    - set_fact:
+        all_results: "{{ all_results|combine({'1.1.2.2.4':rule_1_1_2_2_4_result|default(false)}) }}"
+    when: rhel9cis_rule_1_1_2_2_4
+    ignore_errors: true
+    tags:
+      - rule_1.1.2.2.4
+      - partition
+      - level1
+      - scan

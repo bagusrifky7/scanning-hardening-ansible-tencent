@@ -12,3 +12,8 @@ rhel9cis_rule_1_1_2_1_1: true
 rhel9cis_rule_1_1_2_1_2: true
 rhel9cis_rule_1_1_2_1_3: true
 rhel9cis_rule_1_1_2_1_4: true
+
+rhel9cis_rule_1_1_2_2_1: true
+rhel9cis_rule_1_1_2_2_2: true
+rhel9cis_rule_1_1_2_2_3: true
+rhel9cis_rule_1_1_2_2_4: true

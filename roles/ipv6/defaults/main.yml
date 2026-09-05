@@ -3,5 +3,5 @@ ipv6_sysctl_file: /etc/sysctl.d/60-ipv6-hardening.conf
 
 ipv6_accept_ra: 0
 ipv6_accept_redirects: 0
-ipv7_accept_source_route: 0
+ipv6_accept_source_route: 0
 

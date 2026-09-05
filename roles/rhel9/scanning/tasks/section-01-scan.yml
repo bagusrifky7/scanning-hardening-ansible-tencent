@@ -6,11 +6,13 @@
   - name: SCAN | 1.1.1.1 | A | Ensure cramfs kernel module is not available
     shell: lsmod | grep 'cramfs'
     register: rule_1_1_1_1_a
-    ignore_errors: true
+    changed_when: false
+    failed_when: false
   - name: SCAN | 1.1.1.1 | B | Ensure cramfs kernel module is not available
     shell: modprobe -n -v cramfs
     register: rule_1_1_1_1_b
-    ignore_errors: true
+    changed_when: false
+    failed_when: false
 
   - set_fact:
       rule_1_1_1_1_result: true
@@ -30,12 +32,14 @@
   - name: SCAN | 1.1.1.2 | A | Ensure freevxfs kernel module is not available
     shell: lsmod | grep 'freevxfs'
     register: rule_1_1_1_2_a
-    ignore_errors: true
+    changed_when: false
+    failed_when: false
 
   - name: SCAN | 1.1.1.2 | B | Ensure freevxfs kernel module is not available
     shell: modprobe -n -v freevsfs
     register: rule_1_1_1_2_b
-    ignore_errors: true
+    changed_when: false
+    failed_when: false
 
   - set_fact:
       rule_1_1_1_2_result: true
@@ -55,12 +59,14 @@
   - name: SCAN | 1.1.1.3 | A | Ensure hfs kernel module is not available
     shell: lsmod | grep 'hfs'
     register: rule_1_1_1_3_a
-    ignore_errors: true
+    changed_when: false
+    failed_when: false
 
   - name: SCAN | 1.1.1.3 | B | Ensure hfs kernel module is not available
     shell: modprobe -n -v hfs
     register: rule_1_1_1_3_b
-    ignore_errors: true
+    changed_when: false
+    failed_when: false
 
   - set_fact:
       rule_1_1_1_3_result: true
@@ -80,12 +86,14 @@
   - name: SCAN | 1.1.1.4 | A | Ensure hfsplus kernel module is not available
     shell: lsmod | grep 'hfsplus'
     register: rule_1_1_1_4_a
-    ignore_errors: true
+    changed_when: false
+    failed_when: false
 
   - name: SCAN | 1.1.1.4 | B | Ensure hfsplus kernel module is not available
     shell: modprobe -n -v hfsplus
     register: rule_1_1_1_4_b
-    ignore_errors: true
+    changed_when: false
+    failed_when: false
 
   - set_fact:
       rule_1_1_1_4_result: true
@@ -105,12 +113,14 @@
   - name: SCAN | 1.1.1.5 | A | Ensure jffs2 kernel module is not available
     shell: lsmod | grep 'jffs2'
     register: rule_1_1_1_5_a
-    ignore_errors: true
+    changed_when: false
+    failed_when: false
 
   - name: SCAN | 1.1.1.5 | B | Ensure jffs2 kernel module is not available
     shell: modprobe -n -v jffs2
     register: rule_1_1_1_5_b
-    ignore_errors: true
+    changed_when: false
+    failed_when: false
 
   - set_fact:
       rule_1_1_1_5_result: true
@@ -130,12 +140,14 @@
   - name: SCAN | 1.1.1.8 | A | Ensure usb-storage kernel module is not available
     shell: lsmod | grep 'usb_storage'
     register: rule_1_1_1_8_a
-    ignore_errors: true
+    changed_when: false
+    failed_when: false
 
   - name: SCAN | 1.1.1.8 | B | Ensure usb-storage kernel module is not available
     shell: modprobe -n -v usb-storage
     register: rule_1_1_1_8_b
-    ignore_errors: true
+    changed_when: false
+    failed_when: false
 
   - set_fact:
       rule_1_1_1_8_result: true
@@ -156,7 +168,8 @@
     - name: SCAN | 1.1.2.1.1 | Ensure /tmp is a Separate Partition
       shell: findmnt -kn /tmp
       register: rule_1_1_2_1_1
-      ignore_errors: true
+      changed_when: false
+      failed_when: false
 
     - set_fact:
         rule_1_1_2_1_1_result: true
@@ -176,7 +189,8 @@
     - name: SCAN | 1.1.2.1.2 | Ensure nodev option set on /tmp partition
       shell: findmnt -kn /tmp | grep -v nodev
       register: rule_1_1_2_1_2
-      ignore_errors: true
+      changed_when: false
+      failed_when: false
 
     - set_fact:
         rule_1_1_2_1_2_result: true
@@ -196,7 +210,8 @@
     - name: SCAN | 1.1.2.1.3 | Ensure nosuid option set on /tmp partition
       shell: findmnt -kn /tmp | grep -v nosuid
       register: rule_1_1_2_1_3
-      ignore_errors: true
+      changed_when: false
+      failed_when: false
 
     - set_fact:
         rule_1_1_2_1_3_result: true
@@ -216,7 +231,8 @@
     - name: SCAN | 1.1.2.1.4 | Ensure noexec option set on /tmp partition
       shell: findmnt -kn /tmp | grep -v noexec
       register: rule_1_1_2_1_4
-      ignore_errors: true
+      changed_when: false
+      failed_when: false
 
     - set_fact:
         rule_1_1_2_1_4_result: true

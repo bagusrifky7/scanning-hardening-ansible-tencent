@@ -1,0 +1,29 @@
+---
+# Rules Section 1
+
+# Rule Section 
+- name: SCAN | 1.1.1.1 | Ensure cramfs kernel module is not available
+  block:
+  - name: SCAN | 1.1.1.1 | A | Ensure cramfs kernel module is not available
+    shell: lsmod | grep 'cramfs'
+    register: rule_1_1_1_1_a
+    ignore_errors: true
+  - name: SCAN | 1.1.1.1 | B | Ensure cramfs kernel module is not available
+    shell: modprobe -n -v cramfs
+    register: rule_1_1_1_1_b
+    ignore_erros: true
+
+  - set_fact:
+      rule_1_1_1_1_result: true
+    when: rule_1_1_1_1_a.rc != 0 and (rule_1_1_1_1_b.rc != 0 or 'install' in rule_1_1_1_1_b.stdout)
+  - set_fact:
+      all_results: "{{ all_results|combine({'1.1.1.1':rule_1_1_1_1_result|default(false)}) }}"
+    when: rhel9cis_rule_1_1_1_1
+    ignore_errors: yes
+    tags:
+      - rule_1.1.1.1
+      - filesystem
+      - level1
+      - scan
+  
+- name: SCAN | 1.1.1.2 | Ensure freevxfs kernel module is not available

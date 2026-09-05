@@ -1,4 +1,4 @@
 ---
-    - import_tasks: section1-scan.yml
+    - import_tasks: section-01-scan.yml
       when: section1 | bool
       tags: section01

@@ -1,7 +1,6 @@
 ---
 # Rules Section 1
 
-# Rule Section 
 - name: SCAN | 1.1.1.1 | Ensure cramfs kernel module is not available
   block:
   - name: SCAN | 1.1.1.1 | A | Ensure cramfs kernel module is not available
@@ -11,7 +10,7 @@
   - name: SCAN | 1.1.1.1 | B | Ensure cramfs kernel module is not available
     shell: modprobe -n -v cramfs
     register: rule_1_1_1_1_b
-    ignore_erros: true
+    ignore_errors: true
 
   - set_fact:
       rule_1_1_1_1_result: true
@@ -19,7 +18,7 @@
   - set_fact:
       all_results: "{{ all_results|combine({'1.1.1.1':rule_1_1_1_1_result|default(false)}) }}"
     when: rhel9cis_rule_1_1_1_1
-    ignore_errors: yes
+    ignore_errors: true
     tags:
       - rule_1.1.1.1
       - filesystem
@@ -27,3 +26,207 @@
       - scan
   
 - name: SCAN | 1.1.1.2 | Ensure freevxfs kernel module is not available
+  block:
+  - name: SCAN | 1.1.1.2 | A | Ensure freevxfs kernel module is not available
+    shell: lsmod | grep 'freevxfs'
+    register: rule_1_1_1_2_a
+    ignore_errors: true
+
+  - name: SCAN | 1.1.1.2 | B | Ensure freevxfs kernel module is not available
+    shell: modprobe -n -v freevsfs
+    register: rule_1_1_1_2_b
+    ignore_errors: true
+
+  - set_fact:
+      rule_1_1_1_2_result: true
+    when: rule_1_1_1_2_a.rc != 0 and (rule_1_1_1_2_b.rc != 0 or 'install' in rule_1_1_1_2_b.stdout)
+  - set_fact:
+      all_results: "{{ all_results|combine({'1.1.1.2':rule_1_1_1_2_result|default(false)}) }}"
+    when: rhel9cis_rule_1_1_1_2
+    ignore_errors: true
+    tags:
+      - rule_1.1.1.2
+      - filesystem
+      - level1
+      - scan
+
+- name: SCAN | 1.1.1.3 | Ensure hfs kernel module is not available
+  block:
+  - name: SCAN | 1.1.1.3 | A | Ensure hfs kernel module is not available
+    shell: lsmod | grep 'hfs'
+    register: rule_1_1_1_3_a
+    ignore_errors: true
+
+  - name: SCAN | 1.1.1.3 | B | Ensure hfs kernel module is not available
+    shell: modprobe -n -v hfs
+    register: rule_1_1_1_3_b
+    ignore_errors: true
+
+  - set_fact:
+      rule_1_1_1_3_result: true
+    when: rule_1_1_1_3_a.rc != 0 and (rule_1_1_1_3_b.rc != 0 or 'install' in rule_1_1_1_3_b.stdout)
+  - set_fact:
+      all_results: "{{ all_results|combine({'1.1.1.3':rule_1_1_1_3_result|default(false)}) }}"
+    when: rhel9cis_rule_1_1_1_3
+    ignore_errors: true
+    tags:
+      - rule_1.1.1.3
+      - filesystem
+      - level1
+      - scan
+
+- name: SCAN | 1.1.1.4 | Ensure hfsplus kernel module is not available
+  block:
+  - name: SCAN | 1.1.1.4 | A | Ensure hfsplus kernel module is not available
+    shell: lsmod | grep 'hfsplus'
+    register: rule_1_1_1_4_a
+    ignore_errors: true
+
+  - name: SCAN | 1.1.1.4 | B | Ensure hfsplus kernel module is not available
+    shell: modprobe -n -v hfsplus
+    register: rule_1_1_1_4_b
+    ignore_errors: true
+
+  - set_fact:
+      rule_1_1_1_4_result: true
+    when: rule_1_1_1_4_a.rc != 0 and (rule_1_1_1_4_b.rc != 0 or 'install' in rule_1_1_1_4_b.stdout)
+  - set_fact:
+      all_results: "{{ all_results|combine({'1.1.1.4':rule_1_1_1_4_result|default(false)}) }}"
+    when: rhel9cis_rule_1_1_1_4
+    ignore_errors: true
+    tags:
+      - rule_1.1.1.4
+      - filesystem
+      - level1
+      - scan
+
+- name: SCAN | 1.1.1.5 | Ensure jffs2 kernel module is not available
+  block:
+  - name: SCAN | 1.1.1.5 | A | Ensure jffs2 kernel module is not available
+    shell: lsmod | grep 'jffs2'
+    register: rule_1_1_1_5_a
+    ignore_errors: true
+
+  - name: SCAN | 1.1.1.5 | B | Ensure jffs2 kernel module is not available
+    shell: modprobe -n -v jffs2
+    register: rule_1_1_1_5_b
+    ignore_errors: true
+
+  - set_fact:
+      rule_1_1_1_5_result: true
+    when: rule_1_1_1_5_a.rc != 0 and (rule_1_1_1_5_b.rc != 0 or 'install' in rule_1_1_1_5_b.stdout)
+  - set_fact:
+      all_results: "{{ all_results|combine({'1.1.1.5':rule_1_1_1_5_result|default(false)}) }}"
+    when: rhel9cis_rule_1_1_1_5
+    ignore_errors: true
+    tags:
+      - rule_1.1.1.5
+      - filesystem
+      - level1
+      - scan
+
+- name: SCAN | 1.1.1.8 | Ensure usb-storage kernel module is not available
+  block:
+  - name: SCAN | 1.1.1.8 | A | Ensure usb-storage kernel module is not available
+    shell: lsmod | grep 'usb_storage'
+    register: rule_1_1_1_8_a
+    ignore_errors: true
+
+  - name: SCAN | 1.1.1.8 | B | Ensure usb-storage kernel module is not available
+    shell: modprobe -n -v usb-storage
+    register: rule_1_1_1_8_b
+    ignore_errors: true
+
+  - set_fact:
+      rule_1_1_1_8_result: true
+    when: rule_1_1_1_8_a.rc != 0 and (rule_1_1_1_8_b.rc != 0 or 'install' in rule_1_1_1_8_b.stdout)
+  - set_fact:
+      all_results: "{{ all_results|combine({'1.1.1.8':rule_1_1_1_8_result|default(false)}) }}"
+    when: rhel9cis_rule_1_1_1_8
+    ignore_errors: true
+    tags:
+      - rule_1.1.1.8
+      - filesystem
+      - level1
+      - scan
+
+
+  - name: SCAN | 1.1.2.1.1 | Ensure /tmp is a separate partition (Automated)
+    block:
+    - name: SCAN | 1.1.2.1.1 | Ensure /tmp is a Separate Partition
+      shell: findmnt -kn /tmp
+      register: rule_1_1_2_1_1
+      ignore_errors: true
+
+    - set_fact:
+        rule_1_1_2_1_1_result: true
+      when: rule_1_1_2_1_1.rc == 0
+    - set_fact:
+        all_results: "{{ all_results|combine({'1.1.2.1.1':rule_1_1_2_1_1_result|default(false)}) }}"
+    when: rhel9cis_rule_1_1_2_1_1
+    ignore_errors: true
+    tags:
+      - rule_1.1.2.1.1
+      - partition
+      - level1
+      - scan
+
+  - name: SCAN | 1.1.2.1.2 | Ensure nodev option set on /tmp partition
+    block:
+    - name: SCAN | 1.1.2.1.2 | Ensure nodev option set on /tmp partition
+      shell: findmnt -kn /tmp | grep -v nodev
+      register: rule_1_1_2_1_2
+      ignore_errors: true
+
+    - set_fact:
+        rule_1_1_2_1_2_result: true
+      when: rule_1_1_2_1_2.rc != 0
+    - set_fact:
+        all_results: "{{ all_results|combine({'1.1.2.1.2':rule_1_1_2_1_2_result|default(false)}) }}"
+    when: rhel9cis_rule_1_1_2_1_2
+    ignore_errors: true
+    tags:
+      - rule_1.1.2.1.2
+      - partition
+      - level1
+      - scan
+
+  - name: SCAN | 1.1.2.1.3 | Ensure nosuid option set on /tmp partition
+    block:
+    - name: SCAN | 1.1.2.1.3 | Ensure nosuid option set on /tmp partition
+      shell: findmnt -kn /tmp | grep -v nosuid
+      register: rule_1_1_2_1_3
+      ignore_errors: true
+
+    - set_fact:
+        rule_1_1_2_1_3_result: true
+      when: rule_1_1_2_1_3.rc != 0
+    - set_fact:
+        all_results: "{{ all_results|combine({'1.1.2.1.3':rule_1_1_2_1_3_result|default(false)}) }}"
+    when: rhel9cis_rule_1_1_2_1_3
+    ignore_errors: true
+    tags:
+      - rule_1.1.2.1.3
+      - partition
+      - level1
+      - scan
+
+  - name: SCAN | 1.1.2.1.4 | Ensure noexec option set on /tmp partition
+    block:
+    - name: SCAN | 1.1.2.1.4 | Ensure noexec option set on /tmp partition
+      shell: findmnt -kn /tmp | grep -v noexec
+      register: rule_1_1_2_1_4
+      ignore_errors: true
+
+    - set_fact:
+        rule_1_1_2_1_4_result: true
+      when: rule_1_1_2_1_4.rc != 0
+    - set_fact:
+        all_results: "{{ all_results|combine({'1.1.2.1.4':rule_1_1_2_1_4_result|default(false)}) }}"
+    when: rhel9cis_rule_1_1_2_1_4
+    ignore_errors: true
+    tags:
+      - rule_1.1.2.1.4
+      - partition
+      - level1
+      - scan

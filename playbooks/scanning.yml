@@ -1,4 +1,4 @@
-- name: Scanning VM
+- name: Scanning VM Tencent
   hosts: VM-32-4-almalinux
   become: true
   roles:

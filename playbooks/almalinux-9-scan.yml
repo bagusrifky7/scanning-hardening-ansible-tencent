@@ -1,0 +1,9 @@
+---
+- name: Almalinux 9 Scanning
+  hosts: VM-32-4-almalinux
+  become: true
+  roles:
+    - role: rhel9/scanning
+      tags:
+        - rhel9
+        - scanning

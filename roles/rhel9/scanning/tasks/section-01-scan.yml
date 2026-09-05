@@ -330,3 +330,275 @@
       - partition
       - level1
       - scan
+
+  - name: SCAN | 1.1.2.3.2 | Ensure nodev option set on /home partition
+    block:
+    - name: SCAN | 1.1.2.3.2 | Ensure nodev option set on /home partition
+      shell: findmnt -kn /home | grep -v nodev
+      register: rule_1_1_2_3_2
+      changed_when: false
+      failed_when: false
+
+    - set_fact:
+        rule_1_1_2_3_2_result: true
+      when: rule_1_1_2_3_2.rc != 0
+    - set_fact:
+        all_results: "{{ all_results|combine({'1.1.2.3.2':rule_1_1_2_3_2_result|default(false)}) }}"
+    when: rhel9cis_rule_1_1_2_3_2
+    ignore_errors: true
+    tags:
+      - rule_1.1.2.3.2
+      - partition
+      - level1
+      - scan
+
+  - name: SCAN | 1.1.2.3.3 | Ensure nosuid option set on /home partition
+    block:
+    - name: SCAN | 1.1.2.3.3 | Ensure nosuid option set on /home partition
+      shell: findmnt -kn /home | grep -v nosuid
+      register: rule_1_1_2_3_3
+      changed_when: false
+      failed_when: false
+
+    - set_fact:
+        rule_1_1_2_3_3_result: true
+      when: rule_1_1_2_3_3.rc != 0
+    - set_fact:
+        all_results: "{{ all_results|combine({'1.1.2.3.3':rule_1_1_2_3_3_result|default(false)}) }}"
+    when: rhel9cis_rule_1_1_2_3_3
+    ignore_errors: true
+    tags:
+      - rule_1.1.2.3.3
+      - partition
+      - level1
+      - scan
+  - name: SCAN | 1.1.2.4.2 | Ensure nodev option set on /var partition
+    block:
+    - name: SCAN | 1.1.2.4.2 | Ensure nodev option set on /var partition
+      shell: findmnt -kn /var | grep -v nodev
+      register: rule_1_1_2_4_2
+      changed_when: false
+      failed_when: false
+
+    - set_fact:
+        rule_1_1_2_4_2_result: true
+      when: rule_1_1_2_4_2.rc != 0
+    - set_fact:
+        all_results: "{{ all_results|combine({'1.1.2.4.2':rule_1_1_2_4_2_result|default(false)}) }}"
+    when: rhel9cis_rule_1_1_2_4_2
+    ignore_errors: true
+    tags:
+      - rule_1.1.2.4.2
+      - partition
+      - level1
+      - scan
+
+  - name: SCAN | 1.1.2.4.3 | Ensure nosuid option set on /var partition
+    block:
+    - name: SCAN | 1.1.2.4.3 | Ensure nosuid option set on /var partition
+      shell: findmnt -kn /var | grep -v nosuid
+      register: rule_1_1_2_4_3
+      changed_when: false
+      failed_when: false
+
+    - set_fact:
+        rule_1_1_2_4_3_result: true
+      when: rule_1_1_2_4_3.rc != 0
+    - set_fact:
+        all_results: "{{ all_results|combine({'1.1.2.4.3':rule_1_1_2_4_3_result|default(false)}) }}"
+    when: rhel9cis_rule_1_1_2_4_3
+    ignore_errors: true
+    tags:
+      - rule_1.1.2.4.3
+      - partition
+      - level1
+      - scan
+
+  - name: SCAN | 1.1.2.5.2 | Ensure nodev option set on /var/tmp partition
+    block:
+    - name: SCAN | 1.1.2.5.2 | Ensure nodev option set on /var/tmp partition
+      shell: findmnt -kn /var/tmp | grep -v nodev
+      register: rule_1_1_2_5_2
+      changed_when: false
+      failed_when: false
+
+    - set_fact:
+        rule_1_1_2_5_2_result: true
+      when: rule_1_1_2_5_2.rc != 0
+    - set_fact:
+        all_results: "{{ all_results|combine({'1.1.2.5.2':rule_1_1_2_5_2_result|default(false)}) }}"
+    when: rhel9cis_rule_1_1_2_5_2
+    ignore_errors: true
+    tags:
+      - rule_1.1.2.5.2
+      - partition
+      - level1
+      - scan
+
+  - name: SCAN | 1.1.2.5.3 | Ensure nosuid option set on /var/tmp partition
+    block:
+    - name: SCAN | 1.1.2.5.3 | Ensure nosuid option set on /var/tmp partition
+      shell: findmnt -kn /var/tmp | grep -v nosuid
+      register: rule_1_1_2_5_3
+      changed_when: false
+      failed_when: false
+
+    - set_fact:
+        rule_1_1_2_5_3_result: true
+      when: rule_1_1_2_5_3.rc != 0
+    - set_fact:
+        all_results: "{{ all_results|combine({'1.1.2.5.3':rule_1_1_2_5_3_result|default(false)}) }}"
+    when: rhel9cis_rule_1_1_2_5_3
+    ignore_errors: true
+    tags:
+      - rule_1.1.2.5.3
+      - partition
+      - level1
+      - scan
+
+  - name: SCAN | 1.1.2.5.4 | Ensure noexec option set on /var/tmp partition
+    block:
+    - name: SCAN | 1.1.2.5.4 | Ensure noexec option set on /var/tmp partition
+      shell: findmnt -kn /var/tmp | grep -v noexec
+      register: rule_1_1_2_5_4
+      changed_when: false
+      failed_when: false
+
+    - set_fact:
+        rule_1_1_2_5_4_result: true
+      when: rule_1_1_2_5_4.rc != 0
+    - set_fact:
+        all_results: "{{ all_results|combine({'1.1.2.5.4':rule_1_1_2_5_4_result|default(false)}) }}"
+    when: rhel9cis_rule_1_1_2_5_4
+    ignore_errors: true
+    tags:
+      - rule_1.1.2.5.4
+      - partition
+      - level1
+      - scan
+
+  - name: SCAN | 1.1.2.6.2 | Ensure nodev option set on /var/log partition
+    block:
+    - name: SCAN | 1.1.2.6.2 | Ensure nodev option set on /var/log partition
+      shell: findmnt -kn /var/log | grep -v nodev
+      register: rule_1_1_2_6_2
+      changed_when: false
+      failed_when: false
+
+    - set_fact:
+        rule_1_1_2_6_2_result: true
+      when: rule_1_1_2_6_2.rc != 0
+    - set_fact:
+        all_results: "{{ all_results|combine({'1.1.2.6.2':rule_1_1_2_6_2_result|default(false)}) }}"
+    when: rhel9cis_rule_1_1_2_6_2
+    ignore_errors: true
+    tags:
+      - rule_1.1.2.6.2
+      - partition
+      - level1
+      - scan
+
+  - name: SCAN | 1.1.2.6.3 | Ensure nosuid option set on /var/log partition
+    block:
+    - name: SCAN | 1.1.2.6.3 | Ensure nosuid option set on /var/log partition
+      shell: findmnt -kn /var/log | grep -v nosuid
+      register: rule_1_1_2_6_3
+      changed_when: false
+      failed_when: false
+
+    - set_fact:
+        rule_1_1_2_6_3_result: true
+      when: rule_1_1_2_6_3.rc != 0
+    - set_fact:
+        all_results: "{{ all_results|combine({'1.1.2.6.3':rule_1_1_2_6_3_result|default(false)}) }}"
+    when: rhel9cis_rule_1_1_2_6_3
+    ignore_errors: true
+    tags:
+      - rule_1.1.2.6.3
+      - partition
+      - level1
+      - scan
+
+  - name: SCAN | 1.1.2.6.4 | Ensure noexec option set on /var/log partition
+    block:
+    - name: SCAN | 1.1.2.6.4 | Ensure noexec option set on /var/log partition
+      shell: findmnt -kn /var/log | grep -v noexec
+      register: rule_1_1_2_6_4
+      changed_when: false
+      failed_when: false
+
+    - set_fact:
+        rule_1_1_2_6_4_result: true
+      when: rule_1_1_2_6_4.rc != 0
+    - set_fact:
+        all_results: "{{ all_results|combine({'1.1.2.6.4':rule_1_1_2_6_4_result|default(false)}) }}"
+    when: rhel9cis_rule_1_1_2_6_4
+    ignore_errors: true
+    tags:
+      - rule_1.1.2.6.4
+      - partition
+      - level1
+      - scan
+
+  - name: SCAN | 1.1.2.7.2 | Ensure nodev option set on /var/log/audit partition
+    block:
+    - name: SCAN | 1.1.2.7.2 | Ensure nodev option set on /var/log/audit partition
+      shell: findmnt -kn /var/log/audit | grep -v nodev
+      register: rule_1_1_2_7_2
+      changed_when: false
+      failed_when: false
+
+    - set_fact:
+        rule_1_1_2_7_2_result: true
+      when: rule_1_1_2_7_2.rc != 0
+    - set_fact:
+        all_results: "{{ all_results|combine({'1.1.2.7.2':rule_1_1_2_7_2_result|default(false)}) }}"
+    when: rhel9cis_rule_1_1_2_7_2
+    ignore_errors: true
+    tags:
+      - rule_1.1.2.7.2
+      - partition
+      - level1
+      - scan
+
+  - name: SCAN | 1.1.2.7.3 | Ensure nosuid option set on /var/log/audit partition
+    block:
+    - name: SCAN | 1.1.2.7.3 | Ensure nosuid option set on /var/log/audit partition
+      shell: findmnt -kn /var/log/audit | grep -v nosuid
+      register: rule_1_1_2_7_3
+      changed_when: false
+      failed_when: false
+
+    - set_fact:
+        rule_1_1_2_7_3_result: true
+      when: rule_1_1_2_7_3.rc != 0
+    - set_fact:
+        all_results: "{{ all_results|combine({'1.1.2.7.3':rule_1_1_2_7_3_result|default(false)}) }}"
+    when: rhel9cis_rule_1_1_2_7_3
+    ignore_errors: true
+    tags:
+      - rule_1.1.2.7.3
+      - partition
+      - level1
+      - scan
+
+  - name: SCAN | 1.1.2.7.4 | Ensure noexec option set on /var/log/audit partition
+    block:
+    - name: SCAN | 1.1.2.7.4 | Ensure noexec option set on /var/log/audit partition
+      shell: findmnt -kn /var/log/audit | grep -v noexec
+      register: rule_1_1_2_7_4
+      changed_when: false
+      failed_when: false
+
+    - set_fact:
+        rule_1_1_2_7_4_result: true
+      when: rule_1_1_2_7_4.rc != 0
+    - set_fact:
+        all_results: "{{ all_results|combine({'1.1.2.7.4':rule_1_1_2_7_4_result|default(false)}) }}"
+    when: rhel9cis_rule_1_1_2_7_4
+    ignore_errors: true
+    tags:
+      - rule_1.1.2.7.4
+      - partition
+      - level1
+      - scan

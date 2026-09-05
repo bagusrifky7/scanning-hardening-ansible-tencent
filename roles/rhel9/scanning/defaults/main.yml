@@ -17,3 +17,21 @@ rhel9cis_rule_1_1_2_2_1: true
 rhel9cis_rule_1_1_2_2_2: true
 rhel9cis_rule_1_1_2_2_3: true
 rhel9cis_rule_1_1_2_2_4: true
+
+rhel9cis_rule_1_1_2_3_2: true
+rhel9cis_rule_1_1_2_3_3: true
+
+rhel9cis_rule_1_1_2_4_2: true
+rhel9cis_rule_1_1_2_4_3: true
+
+rhel9cis_rule_1_1_2_5_2: true
+rhel9cis_rule_1_1_2_5_3: true
+rhel9cis_rule_1_1_2_5_4: true
+
+rhel9cis_rule_1_1_2_6_2: true
+rhel9cis_rule_1_1_2_6_3: true
+rhel9cis_rule_1_1_2_6_4: true
+
+rhel9cis_rule_1_1_2_7_2: true
+rhel9cis_rule_1_1_2_7_3: true
+rhel9cis_rule_1_1_2_7_4: true

@@ -3,9 +3,25 @@
       set_fact:
         all_results: {}
 
+    - name: Get scan start time (WIB)
+      shell: TZ='Asia/Jakarta' date +"%Y-%m-%d %H:%M:%S WIB"
+      register: rhel9cis_start_time
+      changed_when: false
+
+    - set_fact:
+        start_time: "{{ rhel9cis_start_time.stdout }}"
+
     - import_tasks: section-01-scan.yml
       when: section1 | bool
       tags: section01
+
+    - name: Get scan end time (WIB)
+      shell: TZ='Asia/Jakarta' date +"%Y-%m-%d %H:%M:%S WIB"
+      register: rhel9cis_end_time
+      changed_when: false
+
+    - set_fact:
+        end_time: "{{ rhel9cis_end_time.stdout }}"
 
     - name: Ensure report directory exists on target host
       file:

@@ -31,6 +31,6 @@
 
     - name: Generate CIS scan report on target host
       template:
-        src: rhel9-cis-report.html.j2
+        src: almalinux9-cis-report.html.j2
         dest: "{{ rhel9cis_report_file }}"
         mode: '0640'

@@ -6,3 +6,15 @@
     - import_tasks: section-01-scan.yml
       when: section1 | bool
       tags: section01
+
+    - name: Ensure report directory exists on target host
+      file:
+        path: "{{ rhel9cis_report_dir }}"
+        state: directory
+        mode: '0750'
+
+    - name: Generate CIS scan report on target host
+      template:
+        src: rhel9-cis-report.html.j2
+        dest: "{{ rhel9cis_report_file }}"
+        mode: '0640'

@@ -1,8 +1,8 @@
 ---
 section1: true
 
-rhel9cis_report_dir: "/tmp/rhel9-cis-result-scan-{{ inventory_hostname }}"
-rhel9cis_report_file: "{{ rhel9cis_report_dir }}/rhel9-cis-report.html"
+rhel9cis_report_dir: "/tmp/almalinux9-cis-result-scan-{{ inventory_hostname }}"
+rhel9cis_report_file: "{{ rhel9cis_report_dir }}/almalinux9-cis-report.html"
 
 rhel9cis_rule_1_1_1_1: true
 rhel9cis_rule_1_1_1_2: true
@@ -38,3 +38,11 @@ rhel9cis_rule_1_1_2_6_4: true
 rhel9cis_rule_1_1_2_7_2: true
 rhel9cis_rule_1_1_2_7_3: true
 rhel9cis_rule_1_1_2_7_4: true
+
+rhel9cis_rule_1_2_1_1: true
+rhel9cis_rule_1_2_1_2: true
+
+rhel9cis_rule_1_3_1_1: true
+rhel9cis_rule_1_3_1_2: true
+rhel9cis_rule_1_3_1_3: true
+rhel9cis_rule_1_3_1_4: true
